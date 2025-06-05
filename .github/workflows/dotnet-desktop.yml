@@ -5,7 +5,12 @@ on:
     tags: ['v*.*.*']  # 只在打tag时触发发布
   pull_request:
     branches: [master]
-
+  workflow_dispatch:
+    inputs:
+      release:
+        description: '是否创建Release'
+        type: boolean
+        default: 'false'
 env:
   SOLUTION_NAME: MarkdownPreview.sln
   BUILD_CONFIGURATION: Release
