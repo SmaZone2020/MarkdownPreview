@@ -1,0 +1,32 @@
+﻿<Window x:Class="MarkdownPreview.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MarkdownPreview"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="645" Width="945">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto" MinHeight="219.76"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="3*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBox x:Name="Editor" Grid.Column="0" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                
+            </TextBox>
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ResizeBehavior="PreviousAndNext" />
+            <ScrollViewer Grid.Column="2">
+                <StackPanel Name="Preview" Orientation="Vertical"/>
+            </ScrollViewer>
+        </Grid>
+        <TextBox x:Name="JsonTextBox" Grid.Row="1" Margin="0,5,0,1" VerticalAlignment="Bottom" Height="213.76" />
+        
+    </Grid>
+</Window>
