@@ -1,0 +1,88 @@
+name: WPF Build and Release
+
+on:
+  push:
+    tags: ['v*.*.*']  # 只在打tag时触发发布
+  pull_request:
+    branches: [master]
+
+env:
+  SOLUTION_NAME: MarkdownPreview.sln
+  BUILD_CONFIGURATION: Release
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        platform: [x86, x64, ARM64]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Increment version
+      id: version
+      uses: martinothamar/version-increment-action@v1
+      with:
+        increment-by: 'patch'  # 每次递增修订号
+        version-file: 'Directory.Build.props'  # 或您的项目文件
+
+    - name: Build for ${{ matrix.platform }}
+      run: |
+        dotnet publish $env:Solution_Name `
+          -c $env:BUILD_CONFIGURATION `
+          -r win-${{ matrix.platform }} `
+          --self-contained true `
+          /p:PublishSingleFile=true `
+          /p:PublishTrimmed=true `
+          /p:Version=${{ steps.version.outputs.version-number }}
+
+    - name: Zip artifacts
+      run: |
+        $version = "${{ steps.version.outputs.version-number }}"
+        $platform = "${{ matrix.platform }}"
+        $outputDir = ".\bin\$env:BUILD_CONFIGURATION\net8.0-windows\win-$platform\publish"
+        $zipName = "MarkdownPreview_${version}_${platform}.zip"
+        
+        Compress-Archive -Path "$outputDir\*" -DestinationPath $zipName -Force
+        echo "ASSET_PATH=$zipName" >> $env:GITHUB_ENV
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: MarkdownPreview_${{ matrix.platform }}
+        path: ${{ env.ASSET_PATH }}
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: windows-latest
+    
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref_name }}
+        body: |
+          WPF Markdown Preview 多平台发布
+          - x86
+          - x64
+          - ARM64
+        files: |
+          artifacts/MarkdownPreview_x86/*.zip
+          artifacts/MarkdownPreview_x64/*.zip
+          artifacts/MarkdownPreview_ARM64/*.zip
